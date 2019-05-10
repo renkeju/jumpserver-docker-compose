@@ -1,7 +1,7 @@
 version: "3"
 services:
   jumpserver:
-    image: linuxlovers/jms_all:latest
+    image: jumpserver/jms_all:1.4.10
     logging:
       driver: "json-file"
       options:
@@ -10,7 +10,7 @@ services:
     restart: always
     ports:
       - "80:80"
-      - "443:443"
+      #- "443:443"
       - "2222:2222"
     networks:
       - frontend
@@ -18,8 +18,8 @@ services:
     volumes:
       - jumpserver_data:/opt/jumpserver/data/media
       - /opt/guacamole:/config/guacamole
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./letsencrypt/:/etc/letsencrypt/
+      #- ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      #- ./letsencrypt/:/etc/letsencrypt/
     environment:
       SECRET_KEY: ${SECRET_KEY}
       BOOTSTRAP_TOKEN: ${BOOTSTRAP_TOKEN}
