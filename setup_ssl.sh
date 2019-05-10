@@ -49,7 +49,6 @@ http {
         listen       80 default_server;                                    
         server_name  _;                                                    
         root         /usr/share/nginx/html;                                
-        return 301   https://www.example.com\$request_uri;
                                                                            
         # Load configuration files for the default server block.           
         include /etc/nginx/default.d/*.conf;                               
@@ -139,17 +138,17 @@ if [ "$DOMAIN" = "" ]; then
     read -p 'input your web site domain: ' DOMAIN
     echo "DOMAIN=$DOMAIN" >> .env
     echo "DOMAIN: $DOMAIN"
-    sed -i "s@server_name  _;@server_name  $DOMAIN;@g" nginx/nginx.conf
     sed -i "s@www.example.com@$DOMAIN;@g" nginx/nginx.conf
+    sed -i "s@server_name  _;@server_name  $DOMAIN;@g" nginx/nginx.conf
 else
     echo "DOMAIN: $DOMAIN"
-    sed -i "s@server_name  _;@server_name  $DOMAIN;@g" nginx/nginx.conf
     sed -i "s@www.example.com@$DOMAIN@g" nginx/nginx.conf
+    sed -i "s@server_name  _;@server_name  $DOMAIN;@g" nginx/nginx.conf
 fi
 
 [ -d letsencrypt ] || docker-compose rm -f
 
-docker container run --interactive --detach --rm -v ${PWD}/letsencrypt/log/:/var/log/letsencrypt/ -v ${PWD}/letsencrypt/:/etc/letsencrypt/ -e EMAIL=$EMAIL -e DOMAIN=$DOMAIN -p 80:80 -p 443:443 linuxlovers/fake-certbot-nginx:latest
+[ -d letsencrypt/live ] || docker container run --interactive --detach --rm -v ${PWD}/letsencrypt/log/:/var/log/letsencrypt/ -v ${PWD}/letsencrypt/:/etc/letsencrypt/ -e EMAIL=$EMAIL -e DOMAIN=$DOMAIN -p 80:80 -p 443:443 linuxlovers/fake-certbot-nginx:latest
 
 sed -i "s@#- \"443:443\"@- \"443:443\"@g" docker-compose.yml
 sed -i "s@image: jumpserver/jms_all:1.4.10@image: linuxlovers/jms_all:latest@g" docker-compose.yml
