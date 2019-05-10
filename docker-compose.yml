@@ -1,0 +1,80 @@
+version: "3"
+services:
+  jumpserver:
+    image: linuxlovers/jms_all:latest
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "2222:2222"
+    networks:
+      - frontend
+      - backend
+    volumes:
+      - jumpserver_data:/opt/jumpserver/data/media
+      - /opt/guacamole:/config/guacamole
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./letsencrypt/:/etc/letsencrypt/
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      BOOTSTRAP_TOKEN: ${BOOTSTRAP_TOKEN}
+      DB_ENGINE: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: jumpserver
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      DB_NAME: jumpserver
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+  redis:
+    image: bitnami/redis:5.0
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+    networks:
+      - backend
+    restart: always
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    links:
+      - jumpserver
+  mysql:
+    image: mysql:5.7
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+    networks:
+      - backend
+    restart: always
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: jumpserver
+      MYSQL_USER: jumpserver
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    links:
+      - jumpserver
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+volumes:
+  jumpserver_data:
+    driver: local
+  mysql_data:
+    driver: local
